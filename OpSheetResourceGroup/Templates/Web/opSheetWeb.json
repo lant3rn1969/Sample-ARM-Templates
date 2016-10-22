@@ -1,0 +1,833 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Admin username"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password"
+      }
+    },
+    "numberOfWebWinInstances": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Number of Windows VM instances to be created behind internal load balancer control"
+      }
+    },
+    "numberOfAPILinuxInstances": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Number of Linux VM instances for API to be created behind internal load balancer control"
+      }
+    },
+    "numberOfUILinuxInstances": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Number of Linux VM instances for UI to be created behind internal load balancer control"
+      }
+    },
+    "winWebVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_D2_v2",
+      "allowedValues": [
+        "Basic_A0",
+        "Basic_A1",
+        "Basic_A2",
+        "Basic_A3",
+        "Basic_A4",
+        "Standard_A0",
+        "Standard_A1",
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_A5",
+        "Standard_A6",
+        "Standard_A7",
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2"
+      ]
+    },
+    "linuxAPIVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_D2_v2",
+      "allowedValues": [
+        "Basic_A0",
+        "Basic_A1",
+        "Basic_A2",
+        "Basic_A3",
+        "Basic_A4",
+        "Standard_A0",
+        "Standard_A1",
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_A5",
+        "Standard_A6",
+        "Standard_A7",
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2"
+      ]
+    },
+    "linuxUIVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_D2_v2",
+      "allowedValues": [
+        "Basic_A0",
+        "Basic_A1",
+        "Basic_A2",
+        "Basic_A3",
+        "Basic_A4",
+        "Standard_A0",
+        "Standard_A1",
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_A5",
+        "Standard_A6",
+        "Standard_A7",
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2"
+      ]
+    },
+    "winImageSKU": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter"
+      ],
+      "metadata": {
+        "description": "The Windows version for the VM"
+      }
+    },
+    "rhelOSVersion": {
+      "type": "string",
+      "defaultValue": "6.8",
+      "allowedValues": [
+        "7.2",
+        "7.1",
+        "7.0",
+        "6.8"
+      ],
+      "metadata": {
+        "description": "The Red Hat Enterprise Linux version for the VM. This will pick a fully patched image of this given Red Hat Enterprise Linux version. Allowed values: 7.2, 7.1, 6.8."
+      }
+    },
+    "diagnosticsStorageName": {
+      "type": "string"
+    },
+    "webSubnetRef": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "winWebNamePrefix": "OpSheetWinWeb",
+    "linuxAPINamePrefix": "OpSheetLinuxAPI",
+    "linuxUINamePrefix": "OpSheetLinuxUI",
+    "webVhdStorageType": "Standard_LRS",
+    "webVhdStorageName": "[take(concat('webvhds', uniqueString(resourceGroup().id)), 24)]",
+    "winWebAvailabilitySetName": "winWebAvSet",
+    "linuxAPIAvailabilitySetName": "linuxAPIAvSet",
+    "linuxUIAvailabilitySetName": "linuxUIAvSet",
+    "winImagePublisher": "MicrosoftWindowsServer",
+    "winImageOffer": "WindowsServer",
+    "linuxImagePublisher": "RedHat",
+    "linuxImageOffer": "RHEL",
+    "winWebNicNamePrefix": "WinWebVMNic",
+    "linuxAPINicNamePrefix": "LinuxAPIVMNic",
+    "linuxUINicNamePrefix": "LinuxUIVMNic",
+    "winLBPublicIPName": "winLoadBalancerPIP",
+    "winLoadBalancerName": "WinWebLB",
+    "winLBpublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses',variables('winLBPublicIPName'))]",
+    "winLBId": "[resourceId('Microsoft.Network/loadBalancers', variables('winLoadBalancerName'))]",
+    "linuxAPILBPublicIPName": "linuxAPILoadBalancerPIP",
+    "linuxAPILBpublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses',variables('linuxAPILBPublicIPName'))]",
+    "linuxAPILoadBalancerName": "LinuxAPIWebLB",
+    "linuxAPILBId": "[resourceId('Microsoft.Network/loadBalancers', variables('linuxAPILoadBalancerName'))]",
+    "linuxUILBPublicIPName": "linuxUILoadBalancerPIP",
+    "linuxUILBpublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses',variables('linuxUILBPublicIPName'))]",
+    "linuxUILoadBalancerName": "LinuxUIWebLB",
+    "linuxUILBId": "[resourceId('Microsoft.Network/loadBalancers', variables('linuxUILoadBalancerName'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('webVhdStorageName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "Web VHD Storage Account"
+      },
+      "properties": {
+        "accountType": "[variables('webVhdStorageType')]"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('winLBPublicIPName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('linuxAPILBPublicIPName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('linuxUILBPublicIPName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('winWebAvailabilitySetName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "AvailabilitySet"
+      },
+      "properties": {
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('linuxAPIAvailabilitySetName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "AvailabilitySet"
+      },
+      "properties": {
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('linuxUIAvailabilitySetName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "AvailabilitySet"
+      },
+      "properties": {
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('winWebNicNamePrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "NetworkInterface"
+      },
+      "copy": {
+        "name": "nicLoop",
+        "count": "[parameters('numberOfWebWinInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('winLoadBalancerName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('webSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('winLBId'), '/backendAddressPools/BackendPool')]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('linuxAPINicNamePrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "NetworkInterface"
+      },
+      "copy": {
+        "name": "nicLoop",
+        "count": "[parameters('numberOfAPILinuxInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('linuxAPILoadBalancerName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('webSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('linuxAPILBId'), '/backendAddressPools/BackendPool')]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('linuxUINicNamePrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "NetworkInterface"
+      },
+      "copy": {
+        "name": "nicLoop",
+        "count": "[parameters('numberOfUILinuxInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('linuxUILoadBalancerName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('webSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('linuxUILBId'), '/backendAddressPools/BackendPool')]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('winWebNamePrefix'), copyindex())]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[parameters('numberOfWebWinInstances')]"
+      },
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "VirtualMachines"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('webVhdStorageName'))]",
+        "nicLoop",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('winWebAvailabilitySetName'))]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('winWebAvailabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('winWebVMSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('winWebNamePrefix'), copyIndex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('winImagePublisher')]",
+            "offer": "[variables('winImageOffer')]",
+            "sku": "[parameters('winImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('https://', variables('webVhdStorageName'), '.blob.core.windows.net/vhds/', 'winwebosdisk', copyindex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('winWebNicNamePrefix'), copyindex()))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUri": "[concat('https://', parameters('diagnosticsStorageName'), '.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('linuxAPINamePrefix'), copyindex())]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[parameters('numberOfAPILinuxInstances')]"
+      },
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "VirtualMachines"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('webVhdStorageName'))]",
+        "nicLoop",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('linuxAPIAvailabilitySetName'))]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('linuxAPIAvailabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('linuxAPIVMSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('linuxAPINamePrefix'), copyIndex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('linuxImagePublisher')]",
+            "offer": "[variables('linuxImageOffer')]",
+            "sku": "[parameters('rhelOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('https://', variables('webVhdStorageName'), '.blob.core.windows.net/vhds/', 'linuxapiosdisk', copyindex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('linuxAPINicNamePrefix'), copyindex()))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUri": "[concat('https://', parameters('diagnosticsStorageName'), '.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('linuxUINamePrefix'), copyindex())]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[parameters('numberOfUILinuxInstances')]"
+      },
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "VirtualMachines"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('webVhdStorageName'))]",
+        "nicLoop",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('linuxUIAvailabilitySetName'))]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('linuxUIAvailabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('linuxUIVMSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('linuxUINamePrefix'), copyIndex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('linuxImagePublisher')]",
+            "offer": "[variables('linuxImageOffer')]",
+            "sku": "[parameters('rhelOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('https://', variables('webVhdStorageName'), '.blob.core.windows.net/vhds/', 'linuxuiosdisk', copyindex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('linuxUINicNamePrefix'), copyindex()))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUri": "[concat('https://', parameters('diagnosticsStorageName'), '.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "[variables('winLoadBalancerName')]",
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "LoadBalancer"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('winLBPublicIPName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "LoadBalancerFrontEnd",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[variables('winLBpublicIPRef')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "BackendPool"
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "LBRulePort80",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('winLoadBalancerName')), '/frontendIPConfigurations/LoadBalancerFrontend')]"
+              },
+              "frontendPort": 80,
+              "backendPort": 80,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 4,
+              "protocol": "Tcp",
+              "loadDistribution": "Default",
+              "backendAddressPool": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('winLoadBalancerName')), '/backendAddressPools/BackendPool')]"
+              },
+              "probe": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('winLoadBalancerName')), '/probes/lbprobe80')]"
+              }
+            }
+          },
+          {
+            "name": "LBRulePort443",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('winLoadBalancerName')), '/frontendIPConfigurations/LoadBalancerFrontend')]"
+              },
+              "frontendPort": 443,
+              "backendPort": 443,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 4,
+              "protocol": "Tcp",
+              "loadDistribution": "Default",
+              "backendAddressPool": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('winLoadBalancerName')), '/backendAddressPools/BackendPool')]"
+              },
+              "probe": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('winLoadBalancerName')), '/probes/lbprobe443')]"
+              }
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "LBProbe443",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 443,
+              "intervalInSeconds": 15,
+              "numberOfProbes": 2
+            }
+          },
+          {
+            "name": "LBProbe80",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 80,
+              "intervalInSeconds": 15,
+              "numberOfProbes": 2
+            }
+          }
+        ],
+        "inboundNatRules": [],
+        "outboundNatRules": [],
+        "inboundNatPools": []
+      }
+    },
+    {
+      "name": "[variables('linuxAPILoadBalancerName')]",
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "LoadBalancer"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('linuxAPILBPublicIPName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "LoadBalancerFrontEnd",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[variables('linuxAPILBpublicIPRef')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "BackendPool"
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "LBRulePort80",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxAPILoadBalancerName')), '/frontendIPConfigurations/LoadBalancerFrontend')]"
+              },
+              "frontendPort": 80,
+              "backendPort": 80,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 4,
+              "protocol": "Tcp",
+              "loadDistribution": "Default",
+              "backendAddressPool": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxAPILoadBalancerName')), '/backendAddressPools/BackendPool')]"
+              },
+              "probe": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxAPILoadBalancerName')), '/probes/lbprobe80')]"
+              }
+            }
+          },
+          {
+            "name": "LBRulePort443",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxAPILoadBalancerName')), '/frontendIPConfigurations/LoadBalancerFrontend')]"
+              },
+              "frontendPort": 443,
+              "backendPort": 443,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 4,
+              "protocol": "Tcp",
+              "loadDistribution": "Default",
+              "backendAddressPool": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxAPILoadBalancerName')), '/backendAddressPools/BackendPool')]"
+              },
+              "probe": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxAPILoadBalancerName')), '/probes/lbprobe443')]"
+              }
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "LBProbe443",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 443,
+              "intervalInSeconds": 15,
+              "numberOfProbes": 2
+            }
+          },
+          {
+            "name": "LBProbe80",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 80,
+              "intervalInSeconds": 15,
+              "numberOfProbes": 2
+            }
+          }
+        ],
+        "inboundNatRules": [],
+        "outboundNatRules": [],
+        "inboundNatPools": []
+      }
+    },
+    {
+      "name": "[variables('linuxUILoadBalancerName')]",
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "LoadBalancer"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('linuxUILBPublicIPName'))]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "LoadBalancerFrontEnd",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[variables('linuxUILBpublicIPRef')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "BackendPool"
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "LBRulePort80",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxUILoadBalancerName')), '/frontendIPConfigurations/LoadBalancerFrontend')]"
+              },
+              "frontendPort": 80,
+              "backendPort": 80,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 4,
+              "protocol": "Tcp",
+              "loadDistribution": "Default",
+              "backendAddressPool": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxUILoadBalancerName')), '/backendAddressPools/BackendPool')]"
+              },
+              "probe": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxUILoadBalancerName')), '/probes/lbprobe80')]"
+              }
+            }
+          },
+          {
+            "name": "LBRulePort443",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "frontendIPConfiguration": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxUILoadBalancerName')), '/frontendIPConfigurations/LoadBalancerFrontend')]"
+              },
+              "frontendPort": 443,
+              "backendPort": 443,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 4,
+              "protocol": "Tcp",
+              "loadDistribution": "Default",
+              "backendAddressPool": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxUILoadBalancerName')), '/backendAddressPools/BackendPool')]"
+              },
+              "probe": {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('linuxUILoadBalancerName')), '/probes/lbprobe443')]"
+              }
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "LBProbe443",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 443,
+              "intervalInSeconds": 15,
+              "numberOfProbes": 2
+            }
+          },
+          {
+            "name": "LBProbe80",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 80,
+              "intervalInSeconds": 15,
+              "numberOfProbes": 2
+            }
+          }
+        ],
+        "inboundNatRules": [],
+        "outboundNatRules": [],
+        "inboundNatPools": []
+      }
+    }
+  ],
+  "outputs": {
+  }
+}
