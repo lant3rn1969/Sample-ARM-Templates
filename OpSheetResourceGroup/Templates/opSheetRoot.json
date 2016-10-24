@@ -228,9 +228,9 @@
   "variables": {
     "virtualNetworkName": "OpSheetVNet",
     "vnetIPRange": "10.0.0.0/16",
-    "webSubnetRange": "10.0.0.1/24",
-    "sqlSubnetRange": "10.0.0.2/24",
-    "opsSubnetRange": "10.0.0.3/24",
+    "webSubnetRange": "10.0.1.0/24",
+    "dataSubnetRange": "10.0.2.0/24",
+    "opsSubnetRange": "10.0.3.0/24",
     "sqlLBFEIPAddress": "10.0.2.5",
     "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "webSubnetName": "WebSubnet",
@@ -245,7 +245,7 @@
     "networkInterface2NamePrefix": "DataVMNic",
     "provisioningOps": "[concat(parameters('templatesBaseUrl'),'/opSheetAdPlusJumpBox.json')]",
     "provisioningWeb": "[concat(parameters('templatesBaseUrl'),'/opSheetWeb.json')]",
-    "provisioningSql": "[concat(parameters('templatesBaseUrl'),'/opSheetSqlAlwaysOn.json')]",
+    "provisioningSql": "[concat(parameters('templatesBaseUrl'),'/opsheetSqlAlwaysOn.json')]",
     "diagnosticsStorageAccountName": "[concat('diagstorage', uniqueString(resourceGroup().id))]",
     "diagnosticsStorageAccountResourceGroup": "[resourcegroup().name]",
     "accountid": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('diagnosticsStorageAccountResourceGroup'), '/providers/', 'Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]",
@@ -301,7 +301,7 @@
           {
             "name": "[variables('dataSubnetName')]",
             "properties": {
-              "addressPrefix": "[variables('sqlSubnetRange')]",
+              "addressPrefix": "[variables('dataSubnetRange')]",
               "networkSecurityGroup": {
                 "id": "[resourceId(resourceGroup().Name, 'Microsoft.Network/networkSecurityGroups', variables('dataNetworkSecurityGroupName'))]"
               }

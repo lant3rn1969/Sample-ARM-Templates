@@ -76,7 +76,7 @@
         "description": "The Windows version for the VM"
       }
     },
-    "sqlImageSKU": {
+    "sqlImageOffer": {
       "type": "string",
       "allowedValues": [
         "SQL2012SP3-WS2012R2",
@@ -113,7 +113,7 @@
     "sqlAvSetName": "opSheetSqlAvSet",
     "sqlwVMName": "opSheetSqlWitness",
     "sqlImagePublisher": "MicrosoftSQLServer",
-    "sqlImageOffer": "[parameters('sqlImageSKU')]",
+    "sqlImageSKU": "Enterprise",
     "fswImagePublisher": "MicrosoftWindowsServer",
     "fswImageOffer": "WindowsServer",
     "sqlVhdStorageType": "Premium_LRS",
@@ -371,8 +371,8 @@
         "storageProfile": {
           "imageReference": {
             "publisher": "[variables('sqlImagePublisher')]",
-            "offer": "[variables('sqlImageOffer')]",
-            "sku": "[parameters('sqlImageSKU')]",
+            "offer": "[parameters('sqlImageOffer')]",
+            "sku": "[variables('sqlImageSKU')]",
             "version": "latest"
           },
           "osDisk": {
