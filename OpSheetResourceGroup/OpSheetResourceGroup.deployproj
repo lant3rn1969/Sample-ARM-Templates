@@ -109,6 +109,7 @@
     <None Include="Templates\SQL\nested\provisioningVM2.json" />
     <None Include="Templates\SQL\nested\provisioningVM3.json" />
     <None Include="Templates\SQL\nested\provisioningVM4.json" />
+    <None Include="Templates\SQL\opSheetSqlAlwaysOn.json" />
     <None Include="Templates\SQL\SqlAlwaysOn.json" />
     <None Include="Templates\SQL\SqlAlwaysOn.parameters.json" />
     <None Include="Templates\SQL\nested\configuringAlwaysOn.json" />

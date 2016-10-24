@@ -20,7 +20,7 @@
       "minValue": 1,
       "defaultValue": 3,
       "metadata": {
-        "description": "Number of Windows VM instances to be created behind internal load balancer control"
+        "description": "Number of Windows VM instances to be created behind external load balancer control"
       }
     },
     "numberOfAPILinuxInstances": {
@@ -28,7 +28,7 @@
       "minValue": 1,
       "defaultValue": 3,
       "metadata": {
-        "description": "Number of Linux VM instances for API to be created behind internal load balancer control"
+        "description": "Number of Linux VM instances for API to be created behind external load balancer control"
       }
     },
     "numberOfUILinuxInstances": {
@@ -36,7 +36,7 @@
       "minValue": 1,
       "defaultValue": 3,
       "metadata": {
-        "description": "Number of Linux VM instances for UI to be created behind internal load balancer control"
+        "description": "Number of Linux VM instances for UI to be created behind external load balancer control"
       }
     },
     "winWebVMSize": {

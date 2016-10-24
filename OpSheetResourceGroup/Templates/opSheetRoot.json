@@ -194,7 +194,15 @@
       "minValue": 1,
       "defaultValue": 3,
       "metadata": {
-        "description": "Number of Windows VM instances to be created for web API and WCF usage behind internal load balancer control"
+        "description": "Number of Windows VM instances to be created for web API and WCF usage behind external load balancer control"
+      }
+    },
+    "numberOfSqlInstances": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Number of Windows VM instances to be created for SQL usage behind internal load balancer control"
       }
     },
     "numberOfAPILinuxInstances": {
@@ -202,7 +210,7 @@
       "minValue": 1,
       "defaultValue": 2,
       "metadata": {
-        "description": "Number of Linux VM instances to be created for API usage behind internal load balancer control"
+        "description": "Number of Linux VM instances to be created for API usage behind external load balancer control"
       }
     },
     "numberOfUILinuxInstances": {
@@ -210,7 +218,7 @@
       "minValue": 1,
       "defaultValue": 2,
       "metadata": {
-        "description": "Number of Linux VM instances to be created for UI usage behind internal load balancer control"
+        "description": "Number of Linux VM instances to be created for UI usage behind external load balancer control"
       }
     },
     "templatesBaseUrl": {
@@ -218,9 +226,12 @@
     }
   },
   "variables": {
-    "imagePublisher": "MicrosoftWindowsServer",
-    "imageOffer": "WindowsServer",
     "virtualNetworkName": "OpSheetVNet",
+    "vnetIPRange": "10.0.0.0/16",
+    "webSubnetRange": "10.0.0.1/24",
+    "sqlSubnetRange": "10.0.0.2/24",
+    "opsSubnetRange": "10.0.0.3/24",
+    "sqlLBFEIPAddress": "10.0.2.5",
     "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "webSubnetName": "WebSubnet",
     "webSubnetRef": "[concat(variables('vnetId'), '/subnets/', variables('webSubnetName'))]",
@@ -234,6 +245,7 @@
     "networkInterface2NamePrefix": "DataVMNic",
     "provisioningOps": "[concat(parameters('templatesBaseUrl'),'/opSheetAdPlusJumpBox.json')]",
     "provisioningWeb": "[concat(parameters('templatesBaseUrl'),'/opSheetWeb.json')]",
+    "provisioningSql": "[concat(parameters('templatesBaseUrl'),'/opSheetSqlAlwaysOn.json')]",
     "diagnosticsStorageAccountName": "[concat('diagstorage', uniqueString(resourceGroup().id))]",
     "diagnosticsStorageAccountResourceGroup": "[resourcegroup().name]",
     "accountid": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('diagnosticsStorageAccountResourceGroup'), '/providers/', 'Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]",
@@ -273,14 +285,14 @@
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "10.0.0.0/16"
+            "[variables('vnetIPRange')]"
           ]
         },
         "subnets": [
           {
             "name": "[variables('webSubnetName')]",
             "properties": {
-              "addressPrefix": "10.0.1.0/24",
+              "addressPrefix": "[variables('webSubnetRange')]",
               "networkSecurityGroup": {
                 "id": "[resourceId(resourceGroup().Name, 'Microsoft.Network/networkSecurityGroups', variables('webNetworkSecurityGroupName'))]"
               }
@@ -289,7 +301,7 @@
           {
             "name": "[variables('dataSubnetName')]",
             "properties": {
-              "addressPrefix": "10.0.2.0/24",
+              "addressPrefix": "[variables('sqlSubnetRange')]",
               "networkSecurityGroup": {
                 "id": "[resourceId(resourceGroup().Name, 'Microsoft.Network/networkSecurityGroups', variables('dataNetworkSecurityGroupName'))]"
               }
@@ -298,34 +310,9 @@
           {
             "name": "[variables('opsSubnetName')]",
             "properties": {
-              "addressPrefix": "10.0.3.0/24",
+              "addressPrefix": "[variables('opsSubnetRange')]",
               "networkSecurityGroup": {
                 "id": "[resourceId(resourceGroup().Name, 'Microsoft.Network/networkSecurityGroups', variables('opsNetworkSecurityGroupName'))]"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[variables('networkInterface2NamePrefix')]",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "NetworkInterface"
-      },
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-      ],
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig2",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('dataSubnetRef')]"
               }
             }
           }
@@ -402,6 +389,42 @@
           },
           "diagnosticsStorageName": {
             "value": "[variables('diagnosticsStorageAccountName')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "ProvisioningSql",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]",
+        "[variables('vnetId')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('provisioningSql')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "dataSubnetRef": {
+            "value": "[variables('dataSubnetRef')]"
+          },
+          "sqlLBIPAddress": {
+            "value": "[variables('sqlLBFEIPAddress')]"
+          },
+          "diagnosticsStorageName": {
+            "value": "[variables('diagnosticsStorageAccountName')]"
+          },
+          "numberOfSqlInstances": {
+            "value": "[parameters('numberOfSqlInstances')]"
           }
         }
       }
