@@ -363,7 +363,8 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2015-01-01",
       "dependsOn": [
-        "[variables('vnetId')]"
+        "[variables('vnetId')]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]"
       ],
       "properties": {
         "mode": "Incremental",
