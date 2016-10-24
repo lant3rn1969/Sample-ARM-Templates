@@ -124,7 +124,7 @@
     "sqlNicPrefix": "opSheetSqlNic",
     "sqlVMNamePrefix": "opSheetSql",
     "SQLAOProbe": "SQLAlwaysOnEndPointProbe",
-    "sqlLoadBalancerName": "WinWebLB",
+    "sqlLoadBalancerName": "OpSheetSqlLB",
     "sqlLBId": "[resourceId('Microsoft.Network/loadBalancers', variables('sqlLoadBalancerName'))]",
     "sqlLBFE": "sqlLBFE",
     "sqlLBBE": "sqlLBBE",
