@@ -7,6 +7,24 @@
       },
       "templatesBaseUrl": {
         "value": "https://qtemplatestorage.blob.core.windows.net/opsheetresourcegroup-stageartifacts" 
+      },
+        "adminPassword": {
+            "value": "OpSh33t!"
+        },
+      "winWebVmSize": {
+        "value": "Standard_A0"
+      },
+      "adBoxVmSize": {
+        "value": "Standard_A0"
+      },
+      "jumpBoxVmSize": {
+        "value": "Standard_A0"
+      },
+      "linuxAPIVMSize": {
+        "value": "Standard_A0"
+      },
+      "linuxUIVMSize": {
+        "value": "Standard_A0"
       }
     }
 }

@@ -7,8 +7,8 @@ Param(
     [string] $ResourceGroupName = 'OpSheetResourceGroup',
     [string] $TemplateUri = 'https://qtemplatestorage.blob.core.windows.net/opsheetresourcegroup-stageartifacts/opSheetRoot.json',
     [string] $TemplateParametersUri = 'https://qtemplatestorage.blob.core.windows.net/opsheetresourcegroup-stageartifacts/opSheetRoot.parameters.json',
-    [string] $TemplateFile = 'c:\users\jacant\documents\microsoft\disney\opsheet\opsheetresourcegroup\opsheetresourcegroup\templates\opSheetRoot.json',
-    [string] $TemplateParametersFile = 'c:\users\jacant\documents\microsoft\disney\opsheet\opsheetresourcegroup\opsheetresourcegroup\templates\opSheetRoot.parameters.json'
+    [string] $TemplateFile = 'C:\Users\randy\Source\Repos\opsheet\OpSheetResourceGroup\Templates\opSheetRoot.json',
+    [string] $TemplateParametersFile = 'C:\Users\randy\Source\Repos\opsheet\OpSheetResourceGroup\Templates\opSheetRoot.parameters.json'
 )
 
 Import-Module Azure -ErrorAction SilentlyContinue

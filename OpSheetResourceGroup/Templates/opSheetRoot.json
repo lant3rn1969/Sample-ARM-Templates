@@ -354,7 +354,17 @@
           },
           "webSubnetRef": {
             "value": "[variables('webSubnetRef')]"
+          },
+          "winWebVMSize": {
+            "value": "[parameters('winWebVMSize')]"
+          },
+          "linuxUIVMSize": {
+            "value": "[parameters('linuxUIVMSize')]"
+          },
+          "linuxAPIVMSize": {
+            "value": "[parameters('linuxAPIVMSize')]"
           }
+
         }
       }
     },
@@ -383,10 +393,10 @@
             "value": "[variables('opsSubnetRef')]"
           },
           "jumpBoxVmSize": {
-            "value": "Standard_A2"
+            "value": "[parameters('jumpBoxVmSize')]"
           },
           "adBoxVmSize": {
-            "value": "Standard_A2"
+            "value": "[parameters('adBoxVmSize')]"
           },
           "diagnosticsStorageName": {
             "value": "[variables('diagnosticsStorageAccountName')]"
