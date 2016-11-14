@@ -402,7 +402,19 @@
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
-          }
+          },
+          "dataDisks": [
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('webVhdStorageName'),'.blob.core.windows.net/vhds/', 'winwebdatadisk', copyindex(), '.vhd')]"
+              },
+              "name": "[concat(variables('winWebNamePrefix'), copyindex(),'-data-disk0')]",
+              "caching": "Read",
+              "createOption": "Empty",
+              "diskSizeGB": "100",
+              "lun": 0
+            }
+          ]
         },
         "networkProfile": {
           "networkInterfaces": [

@@ -105,6 +105,8 @@
     <None Include="Templates\Ops\DSC\xPendingReboot\DSCResources\MSFT_xPendingReboot\MSFT_xPendingReboot.schema.mof" />
     <None Include="Templates\Ops\DSC\xPendingReboot\xPendingReboot.psd1" />
     <None Include="Templates\Ops\DSC\xPendingReboot\xPendingReboot_Documentation.html" />
+    <None Include="Templates\SQL\nested\configuringAlwaysOn.json" />
+    <None Include="Templates\SQL\nested\preparingSqlServer.json" />
     <None Include="Templates\SQL\nested\provisioningVM1.json" />
     <None Include="Templates\SQL\nested\provisioningVM2.json" />
     <None Include="Templates\SQL\nested\provisioningVM3.json" />
@@ -112,10 +114,8 @@
     <None Include="Templates\SQL\opSheetSqlAlwaysOn.json" />
     <None Include="Templates\SQL\SqlAlwaysOn.json" />
     <None Include="Templates\SQL\SqlAlwaysOn.parameters.json" />
-    <None Include="Templates\SQL\nested\configuringAlwaysOn.json" />
     <None Include="Templates\SQL\nested\creatingNICS.json" />
     <None Include="Templates\SQL\nested\nic.json" />
-    <None Include="Templates\SQL\nested\preparingSqlServer.json" />
     <None Include="Templates\SQL\nested\provisioningNetworkStorageAGSet.json" />
     <None Include="Templates\SQL\nested\publicip-rdp.json" />
     <None Include="Templates\SQL\nested\setupLBs.json" />

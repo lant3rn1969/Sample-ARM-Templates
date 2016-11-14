@@ -39,7 +39,7 @@
     "sqlVMSize": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "Standard_D3_v2",
+      "defaultValue": "Standard_DS3",
       "allowedValues": [
         "Basic_A0",
         "Basic_A1",
@@ -61,7 +61,11 @@
         "Standard_D11_v2",
         "Standard_D12_v2",
         "Standard_D13_v2",
-        "Standard_D14_v2"
+        "Standard_D14_v2",
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4"
       ]
     },
     "fswImageSKU": {
@@ -111,7 +115,7 @@
   },
   "variables": {
     "sqlAvSetName": "opSheetSqlAvSet",
-    "sqlwVMName": "opSheetSqlWitness",
+    "sqlwVMName": "opSheetSqlFSW",
     "sqlImagePublisher": "MicrosoftSQLServer",
     "sqlImageSKU": "Enterprise",
     "fswImagePublisher": "MicrosoftWindowsServer",
@@ -124,8 +128,6 @@
     "sqlNicPrefix": "opSheetSqlNic",
     "sqlVMNamePrefix": "opSheetSql",
     "SQLAOProbe": "SQLAlwaysOnEndPointProbe",
-    "sqlLoadBalancerName": "OpSheetSqlLB",
-    "sqlLBId": "[resourceId('Microsoft.Network/loadBalancers', variables('sqlLoadBalancerName'))]",
     "sqlLBFE": "sqlLBFE",
     "sqlLBBE": "sqlLBBE",
     "sqlLBName": "opSheetSqlLB",
@@ -204,7 +206,7 @@
         "count": "[parameters('numberOfSqlInstances')]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/loadBalancers/', variables('sqlLoadBalancerName'))]"
+        "[concat('Microsoft.Network/loadBalancers/', variables('sqlLBName'))]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -217,7 +219,7 @@
               },
               "loadBalancerBackendAddressPools": [
                 {
-                  "id": "[concat(variables('sqlLBId'), '/backendAddressPools/BackendPool')]"
+                  "id": "[concat(variables('sqllbID'), '/backendAddressPools/', variables('sqlLBBE'))]"
                 }
               ]
             }
@@ -253,7 +255,7 @@
             "name": "SQLAlwaysOnEndPointListener",
             "properties": {
               "backendAddressPool": {
-                "id": "[variables('sqlLBBE')]"
+                "id": "[variables('sqlBEAddressPoolID')]"
               },
               "frontendIPConfiguration": {
                 "id": "[variables('sqllbFEConfigID')]"
@@ -287,6 +289,8 @@
       "name": "[variables('sqlwVMName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('fswVhdStorageName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('fswNicName'))]",
         "[concat('Microsoft.Compute/availabilitySets/',variables('sqlAvSetName'))]"
       ],
       "properties": {
@@ -350,7 +354,9 @@
       "name": "[concat(variables('sqlVMNamePrefix'), copyindex())]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Compute/availabilitySets/',variables('sqlAvSetName'))]"
+        "[concat('Microsoft.Compute/availabilitySets/', variables('sqlAvSetName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sqlVhdStorageName'))]",
+        "nicLoop"
       ],
       "copy": {
         "name": "sqlvirtualMachineLoop",
