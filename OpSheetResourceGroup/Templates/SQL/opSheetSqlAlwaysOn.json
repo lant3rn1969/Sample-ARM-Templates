@@ -39,7 +39,7 @@
     "sqlVMSize": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "Standard_DS3",
+      "defaultValue": "Standard_GS5",
       "allowedValues": [
         "Basic_A0",
         "Basic_A1",
@@ -65,7 +65,9 @@
         "Standard_DS1",
         "Standard_DS2",
         "Standard_DS3",
-        "Standard_DS4"
+        "Standard_DS4",
+        "Standard_GS4",
+        "Standard_GS5"
       ]
     },
     "fswImageSKU": {
@@ -392,33 +394,43 @@
           "dataDisks": [
             {
               "vhd": {
-                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('sqlVMNamePrefix'), copyindex(), '-Data-1.vhd')]"
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('sqlVMNamePrefix'), copyindex(), '-DataFiles-1.vhd')]"
               },
               "name": "[concat(variables('sqlVMNamePrefix'), copyindex(),'-data-disk1')]",
-              "caching": "None",
+              "caching": "ReadOnly",
               "createOption": "Empty",
-              "diskSizeGB": "1000",
+              "diskSizeGB": "1023",
               "lun": 0
             },
             {
               "vhd": {
-                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('sqlVMNamePrefix'), copyindex(), '-Data-2.vhd')]"
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('sqlVMNamePrefix'), copyindex(), '-DataFiles-2.vhd')]"
               },
               "name": "[concat(variables('sqlVMNamePrefix'), copyindex(),'-data-disk2')]",
-              "caching": "None",
+              "caching": "ReadOnly",
               "createOption": "Empty",
-              "diskSizeGB": "1000",
+              "diskSizeGB": "1023",
               "lun": 1
             },
             {
               "vhd": {
-                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('sqlVMNamePrefix'), copyindex(), '-Data-3.vhd')]"
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('sqlVMNamePrefix'), copyindex(), '-Logs.vhd')]"
               },
-              "name": "[concat(variables('sqlVMNamePrefix'), copyindex(),'-data-disk3')]",
+              "name": "[concat(variables('sqlVMNamePrefix'), copyindex(),'-logs')]",
               "caching": "None",
               "createOption": "Empty",
-              "diskSizeGB": "1000",
+              "diskSizeGB": "512",
               "lun": 2
+            },
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('sqlVMNamePrefix'), copyindex(), '-TempDb.vhd')]"
+              },
+              "name": "[concat(variables('sqlVMNamePrefix'), copyindex(),'-tempdb')]",
+              "caching": "ReadOnly",
+              "createOption": "Empty",
+              "diskSizeGB": "512",
+              "lun": 3
             }
           ]
         },

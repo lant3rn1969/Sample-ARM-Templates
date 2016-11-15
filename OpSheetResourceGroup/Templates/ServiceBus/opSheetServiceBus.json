@@ -1,0 +1,208 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Admin username"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password"
+      }
+    },
+    "numberOfSBWinInstances": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Number of Windows VM instances to be created"
+      }
+    },
+    "sbVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_D2_v2",
+      "allowedValues": [
+        "Basic_A0",
+        "Basic_A1",
+        "Basic_A2",
+        "Basic_A3",
+        "Basic_A4",
+        "Standard_A0",
+        "Standard_A1",
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_A4",
+        "Standard_A5",
+        "Standard_A6",
+        "Standard_A7",
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2"
+      ]
+    },
+    "winImageSKU": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter"
+      ],
+      "metadata": {
+        "description": "The Windows version for the VM"
+      }
+    },
+    "diagnosticsStorageName": {
+      "type": "string"
+    },
+    "sbSubnetRef": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "sbNamePrefix": "OpSheetSB",
+    "sbVhdStorageType": "Standard_LRS",
+    "sbVhdStorageName": "[take(concat('sbVhds', uniqueString(resourceGroup().id)), 24)]",
+    "sbAvailabilitySetName": "sbAvSet",
+    "winImagePublisher": "MicrosoftWindowsServer",
+    "winImageOffer": "WindowsServer",
+    "sbNicNamePrefix": "sbVMNic"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('sbVhdStorageName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "Service Bus VHD Storage Account"
+      },
+      "properties": {
+        "accountType": "[variables('sbVhdStorageType')]"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('sbAvailabilitySetName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "Service Bus AvailabilitySet"
+      },
+      "properties": {
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('sbNicNamePrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "NetworkInterface"
+      },
+      "copy": {
+        "name": "nicLoop",
+        "count": "[parameters('numberOfSBWinInstances')]"
+      },
+      "dependsOn": [],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('sbSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2016-09-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('sbNamePrefix'), copyindex())]",
+      "copy": {
+        "name": "virtualMachineLoop",
+        "count": "[parameters('numberOfSBWinInstances')]"
+      },
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "VirtualMachines"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sbVhdStorageName'))]",
+        "nicLoop",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('sbAvailabilitySetName'))]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('sbAvailabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('sbVMSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('sbNamePrefix'), copyIndex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('winImagePublisher')]",
+            "offer": "[variables('winImageOffer')]",
+            "sku": "[parameters('winImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('https://', variables('sbVhdStorageName'), '.blob.core.windows.net/vhds/', 'sbosdisk', copyindex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sbVhdStorageName'),'.blob.core.windows.net/vhds/', 'sbdatadisk', copyindex(), '.vhd')]"
+              },
+              "name": "[concat(variables('sbNamePrefix'), copyindex(),'-data-disk0')]",
+              "caching": "Read",
+              "createOption": "Empty",
+              "diskSizeGB": "100",
+              "lun": 0
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('sbNicNamePrefix'), copyindex()))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUri": "[concat('https://', parameters('diagnosticsStorageName'), '.blob.core.windows.net')]"
+          }
+        }
+      }
+    }
+  ],
+    "outputs": {
+    }
+}

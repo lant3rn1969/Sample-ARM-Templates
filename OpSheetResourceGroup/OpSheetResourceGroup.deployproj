@@ -105,6 +105,7 @@
     <None Include="Templates\Ops\DSC\xPendingReboot\DSCResources\MSFT_xPendingReboot\MSFT_xPendingReboot.schema.mof" />
     <None Include="Templates\Ops\DSC\xPendingReboot\xPendingReboot.psd1" />
     <None Include="Templates\Ops\DSC\xPendingReboot\xPendingReboot_Documentation.html" />
+    <None Include="Templates\ServiceBus\opSheetServiceBus.json" />
     <None Include="Templates\SQL\nested\configuringAlwaysOn.json" />
     <None Include="Templates\SQL\nested\preparingSqlServer.json" />
     <None Include="Templates\SQL\nested\provisioningVM1.json" />

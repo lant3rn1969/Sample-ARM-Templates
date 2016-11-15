@@ -228,10 +228,11 @@
   "variables": {
     "virtualNetworkName": "OpSheetVNet",
     "vnetIPRange": "10.0.0.0/16",
-    "webSubnetRange": "10.0.1.0/24",
-    "dataSubnetRange": "10.0.2.0/24",
-    "opsSubnetRange": "10.0.3.0/24",
-    "sqlLBFEIPAddress": "10.0.2.5",
+    "webSubnetRange": "10.0.0.0/24",
+    "dataSubnetRange": "10.0.1.0/24",
+    "opsSubnetRange": "10.0.2.0/24",
+    "sbSubnetRange": "10.0.3.0/24",
+    "sqlLBFEIPAddress": "10.0.1.5",
     "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "webSubnetName": "WebSubnet",
     "webSubnetRef": "[concat(variables('vnetId'), '/subnets/', variables('webSubnetName'))]",
@@ -239,13 +240,17 @@
     "dataSubnetRef": "[concat(variables('vnetId'), '/subnets/', variables('dataSubnetName'))]",
     "opsSubnetName": "OpsSubnet",
     "opsSubnetRef": "[concat(variables('vnetId'), '/subnets/', variables('opsSubnetName'))]",
+    "sbSubnetName": "ServiceBusSubnet",
+    "sbSubnetRef": "[concat(variables('vnetId'), '/subnets/', variables('sbSubnetName'))]",
     "webNetworkSecurityGroupName": "WebSubnetSecurityGroup",
     "dataNetworkSecurityGroupName": "DataSubnetSecurityGroup",
     "opsNetworkSecurityGroupName": "OpsSubnetSecurityGroup",
+    "sbNetworkSecurityGroupName": "ServiceBuxSubnetSecurityGroup",
     "networkInterface2NamePrefix": "DataVMNic",
     "provisioningOps": "[concat(parameters('templatesBaseUrl'),'/opSheetAdPlusJumpBox.json')]",
     "provisioningWeb": "[concat(parameters('templatesBaseUrl'),'/opSheetWeb.json')]",
     "provisioningSql": "[concat(parameters('templatesBaseUrl'),'/opsheetSqlAlwaysOn.json')]",
+    "provisioningServiceBus": "[concat(parameters('templatesBaseUrl'),'/opSheetServiceBus.json')]",
     "diagnosticsStorageAccountName": "[concat('diagstorage', uniqueString(resourceGroup().id))]",
     "diagnosticsStorageAccountResourceGroup": "[resourcegroup().name]",
     "accountid": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', variables('diagnosticsStorageAccountResourceGroup'), '/providers/', 'Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]",
@@ -313,6 +318,15 @@
               "addressPrefix": "[variables('opsSubnetRange')]",
               "networkSecurityGroup": {
                 "id": "[resourceId(resourceGroup().Name, 'Microsoft.Network/networkSecurityGroups', variables('opsNetworkSecurityGroupName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('sbSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('sbSubnetRange')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId(resourceGroup().Name, 'Microsoft.Network/networkSecurityGroups', variables('sbNetworkSecurityGroupName'))]"
               }
             }
           }
@@ -431,6 +445,37 @@
       }
     },
     {
+      "name": "ProvisioningServiceBus",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]",
+        "[variables('vnetId')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('provisioningServiceBus')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "numberOfSBWinInstances": 3,
+          "diagnosticsStorageName": {
+            "value": "[variables('diagnosticsStorageAccountName')]"
+          },
+          "sbSubnetRef": {
+            "value": "[variables('sbSubnetRef')]"
+          }
+        }
+      }
+    },
+    {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/networkSecurityGroups",
       "location": "[resourceGroup().location]",
@@ -441,7 +486,7 @@
             "name": "default-allow-rdp",
             "properties": {
               "priority": 1000,
-              "sourceAddressPrefix": "*",
+              "sourceAddressPrefix": "10.0.0.0/22",
               "protocol": "Tcp",
               "destinationPortRange": "3389",
               "access": "Allow",
@@ -490,7 +535,7 @@
             "name": "default-allow-rdp",
             "properties": {
               "priority": 1000,
-              "sourceAddressPrefix": "*",
+              "sourceAddressPrefix": "10.0.0.0/22",
               "protocol": "Tcp",
               "destinationPortRange": "3389",
               "access": "Allow",
@@ -503,7 +548,7 @@
             "name": "default-allow-sql",
             "properties": {
               "priority": 1500,
-              "sourceAddressPrefix": "*",
+              "sourceAddressPrefix": "10.0.1.0/24",
               "protocol": "Tcp",
               "destinationPortRange": "1433",
               "access": "Allow",
@@ -527,6 +572,29 @@
             "properties": {
               "priority": 1000,
               "sourceAddressPrefix": "*",
+              "protocol": "Tcp",
+              "destinationPortRange": "3389",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('sbNetworkSecurityGroupName')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-rdp",
+            "properties": {
+              "priority": 1000,
+              "sourceAddressPrefix": "10.0.0.0/22",
               "protocol": "Tcp",
               "destinationPortRange": "3389",
               "access": "Allow",
