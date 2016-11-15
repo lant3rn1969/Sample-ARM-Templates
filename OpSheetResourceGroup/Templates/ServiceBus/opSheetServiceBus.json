@@ -73,7 +73,7 @@
   "variables": {
     "sbNamePrefix": "OpSheetSB",
     "sbVhdStorageType": "Standard_LRS",
-    "sbVhdStorageName": "[take(concat('sbVhds', uniqueString(resourceGroup().id)), 24)]",
+    "sbVhdStorageName": "[take(concat('sbvhds', uniqueString(resourceGroup().id)), 24)]",
     "sbAvailabilitySetName": "sbAvSet",
     "winImagePublisher": "MicrosoftWindowsServer",
     "winImageOffer": "WindowsServer",
@@ -131,7 +131,7 @@
       }
     },
     {
-      "apiVersion": "2016-09-01",
+      "apiVersion": "2015-06-15",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(variables('sbNamePrefix'), copyindex())]",
       "copy": {
@@ -180,7 +180,7 @@
                 "uri": "[concat('http://',variables('sbVhdStorageName'),'.blob.core.windows.net/vhds/', 'sbdatadisk', copyindex(), '.vhd')]"
               },
               "name": "[concat(variables('sbNamePrefix'), copyindex(),'-data-disk0')]",
-              "caching": "Read",
+              "caching": "ReadOnly",
               "createOption": "Empty",
               "diskSizeGB": "100",
               "lun": 0

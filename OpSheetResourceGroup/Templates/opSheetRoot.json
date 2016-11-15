@@ -249,7 +249,7 @@
     "networkInterface2NamePrefix": "DataVMNic",
     "provisioningOps": "[concat(parameters('templatesBaseUrl'),'/opSheetAdPlusJumpBox.json')]",
     "provisioningWeb": "[concat(parameters('templatesBaseUrl'),'/opSheetWeb.json')]",
-    "provisioningSql": "[concat(parameters('templatesBaseUrl'),'/opsheetSqlAlwaysOn.json')]",
+    "provisioningSql": "[concat(parameters('templatesBaseUrl'),'/opSheetSqlAlwaysOn.json')]",
     "provisioningServiceBus": "[concat(parameters('templatesBaseUrl'),'/opSheetServiceBus.json')]",
     "diagnosticsStorageAccountName": "[concat('diagstorage', uniqueString(resourceGroup().id))]",
     "diagnosticsStorageAccountResourceGroup": "[resourcegroup().name]",
@@ -285,7 +285,8 @@
       "dependsOn": [
         "[concat('Microsoft.Network/networkSecurityGroups/', variables('webNetworkSecurityGroupName'))]",
         "[concat('Microsoft.Network/networkSecurityGroups/', variables('dataNetworkSecurityGroupName'))]",
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('opsNetworkSecurityGroupName'))]"
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('opsNetworkSecurityGroupName'))]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('sbNetworkSecurityGroupName'))]"
       ],
       "properties": {
         "addressSpace": {
@@ -429,6 +430,9 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
+          "witnessVMSize": {
+            "value": "Standard_GS5"
+          },
           "dataSubnetRef": {
             "value": "[variables('dataSubnetRef')]"
           },
@@ -465,7 +469,7 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
-          "numberOfSBWinInstances": 3,
+          "numberOfSBWinInstances": { "value": 3 },
           "diagnosticsStorageName": {
             "value": "[variables('diagnosticsStorageAccountName')]"
           },

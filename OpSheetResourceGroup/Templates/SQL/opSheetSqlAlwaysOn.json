@@ -11,49 +11,8 @@
     "witnessVMSize": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "Standard_A2",
-      "allowedValues": [
-        "Basic_A0",
-        "Basic_A1",
-        "Basic_A2",
-        "Basic_A3",
-        "Basic_A4",
-        "Standard_A0",
-        "Standard_A1",
-        "Standard_A2",
-        "Standard_A3",
-        "Standard_A4",
-        "Standard_A5",
-        "Standard_A6",
-        "Standard_A7",
-        "Standard_D1_v2",
-        "Standard_D2_v2",
-        "Standard_D3_v2",
-        "Standard_D4_v2",
-        "Standard_D11_v2",
-        "Standard_D12_v2",
-        "Standard_D13_v2",
-        "Standard_D14_v2"
-      ]
-    },
-    "sqlVMSize": {
-      "type": "string",
-      "minLength": 1,
       "defaultValue": "Standard_GS5",
       "allowedValues": [
-        "Basic_A0",
-        "Basic_A1",
-        "Basic_A2",
-        "Basic_A3",
-        "Basic_A4",
-        "Standard_A0",
-        "Standard_A1",
-        "Standard_A2",
-        "Standard_A3",
-        "Standard_A4",
-        "Standard_A5",
-        "Standard_A6",
-        "Standard_A7",
         "Standard_D1_v2",
         "Standard_D2_v2",
         "Standard_D3_v2",
@@ -66,6 +25,33 @@
         "Standard_DS2",
         "Standard_DS3",
         "Standard_DS4",
+        "Standard_GS1",
+        "Standard_GS2",
+        "Standard_GS3",
+        "Standard_GS4",
+        "Standard_GS5"
+      ]
+    },
+    "sqlVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_GS5",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4",
+        "Standard_GS1",
+        "Standard_GS2",
+        "Standard_GS3",
         "Standard_GS4",
         "Standard_GS5"
       ]
@@ -123,9 +109,7 @@
     "fswImagePublisher": "MicrosoftWindowsServer",
     "fswImageOffer": "WindowsServer",
     "sqlVhdStorageType": "Premium_LRS",
-    "fswVhdStorageType": "Standard_LRS",
     "sqlVhdStorageName": "[take(concat('sqlvhds', uniqueString(resourceGroup().id)), 24)]",
-    "fswVhdStorageName": "[take(concat('fsw', uniqueString(resourceGroup().id)), 24)]",
     "fswNicName": "opSheetFswNic",
     "sqlNicPrefix": "opSheetSqlNic",
     "sqlVMNamePrefix": "opSheetSql",
@@ -149,18 +133,6 @@
       },
       "properties": {
         "accountType": "[variables('sqlVhdStorageType')]"
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('fswVhdStorageName')]",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "Web VHD Storage Account"
-      },
-      "properties": {
-        "accountType": "[variables('fswVhdStorageType')]"
       }
     },
     {
@@ -291,7 +263,7 @@
       "name": "[variables('sqlwVMName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('fswVhdStorageName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sqlVhdStorageName'))]",
         "[concat('Microsoft.Network/networkInterfaces/', variables('fswNicName'))]",
         "[concat('Microsoft.Compute/availabilitySets/',variables('sqlAvSetName'))]"
       ],
@@ -317,23 +289,11 @@
           "osDisk": {
             "name": "osdisk",
             "vhd": {
-              "uri": "[concat('http://',variables('fswVhdStorageName'),'.blob.core.windows.net/vhds/',variables('sqlwVMName'),'-osdisk.vhd')]"
+              "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/',variables('sqlwVMName'),'-osdisk.vhd')]"
             },
             "caching": "ReadWrite",
             "createOption": "FromImage"
-          },
-          "dataDisks": [
-            {
-              "vhd": {
-                "uri": "[concat('http://',variables('fswVhdStorageName'),'.blob.core.windows.net/vhds/', variables('sqlwVMName'),'-data-1.vhd')]"
-              },
-              "name": "[concat(variables('sqlwVMName'),'-data-disk1')]",
-              "caching": "None",
-              "createOption": "Empty",
-              "diskSizeGB": "128",
-              "lun": 0
-            }
-          ]
+          }
         },
         "networkProfile": {
           "networkInterfaces": [
