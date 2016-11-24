@@ -1,0 +1,214 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "webSubnetRef": {
+      "type": "string"
+    },
+    "uiBackEndPoolIP0": {
+      "type": "string"
+    },
+    "uiBackEndPoolIP1": {
+      "type": "string"
+    },
+    "apiBackEndPoolIP0": {
+      "type": "string"
+    },
+    "apiBackEndPoolIP1": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "linuxPublicIPName": "linuxAppGatewayPIP",
+    "appGatewaySkuName": "Standard_Medium",
+    "appGatewayCapacity": "2",
+    "pathMatchUI": "/UI/*",
+    "pathMatchAPI": "/API/*",
+    "applicationGatewayName": "opSheetLinuxAppGateway",
+    "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways',variables('applicationGatewayName'))]",
+    "linuxPublicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses',variables('linuxPublicIPName'))]",
+    "apiVersion": "2015-06-15"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('linuxPublicIPName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "[variables('applicationGatewayName')]",
+      "type": "Microsoft.Network/applicationGateways",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('linuxPublicIPName'))]"
+      ],
+      "properties": {
+        "sku": {
+          "name": "[variables('appGatewaySkuName')]",
+          "tier": "Standard",
+          "capacity": "[variables('appGatewayCapacity')]"
+        },
+        "gatewayIPConfigurations": [
+          {
+            "name": "appGatewayIpConfig",
+            "properties": {
+              "subnet": {
+                "id": "[parameters('webSubnetRef')]"
+              }
+            }
+          }
+        ],
+        "frontendIPConfigurations": [
+          {
+            "name": "appGatewayFrontendPublicIP",
+            "properties": {
+              "PublicIPAddress": {
+                "id": "[variables('linuxPublicIPRef')]"
+              }
+            }
+          }
+        ],
+        "frontendPorts": [
+          {
+            "name": "appGatewayFrontendPort80",
+            "properties": {
+              "Port": 80
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "appGatewayBackendPoolDefault",
+            "properties": {
+              "BackendAddresses": [
+                {
+                  "IpAddress": "[parameters('uiBackEndPoolIP0')]"
+                },
+                { "IpAddress": "[parameters('uiBackEndPoolIP1')]" }
+              ]
+            }
+          },
+          {
+            "name": "appGatewayBackendPoolUI",
+            "properties": {
+              "BackendAddresses": [
+                {
+                  "IpAddress": "[parameters('uiBackEndPoolIP0')]"
+                },
+                { "IpAddress": "[parameters('uiBackEndPoolIP1')]" }
+              ]
+            }
+          },
+          {
+            "name": "appGatewayBackendPoolAPI",
+            "properties": {
+              "BackendAddresses": [
+                {
+                  "IpAddress": "[parameters('apiBackEndPoolIP0')]"
+                },
+                { "IpAddress": "[parameters('apiBackEndPoolIP1')]" }
+              ]
+            }
+          }
+        ],
+        "backendHttpSettingsCollection": [
+          {
+            "name": "appGatewayBackendHttpSettingsUI",
+            "properties": {
+              "Port": 8001,
+              "Protocol": "Http",
+              "CookieBasedAffinity": "Disabled"
+            }
+          },
+          {
+            "name": "appGatewayBackendHttpSettingsAPI",
+            "properties": {
+              "Port": 8002,
+              "Protocol": "Http",
+              "CookieBasedAffinity": "Disabled"
+            }
+          }
+        ],
+        "httpListeners": [
+          {
+            "name": "appGatewayHttpListener",
+            "properties": {
+              "FrontendIPConfiguration": {
+                "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendPublicIP')]"
+              },
+              "FrontendPort": {
+                "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/appGatewayFrontendPort80')]"
+              },
+              "Protocol": "Http",
+              "SslCertificate": null
+            }
+          }
+        ],
+        "urlPathMaps": [
+          {
+            "name": "urlPathMap1",
+            "properties": {
+              "defaultBackendAddressPool": {
+                "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/appGatewayBackendPoolUI')]"
+              },
+              "defaultBackendHttpSettings": {
+                "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/appGatewayBackendHttpSettingsUI')]"
+              },
+              "pathRules": [
+                {
+                  "name": "pathRuleUI",
+                  "properties": {
+                    "paths": [
+                      "[variables('pathMatchUI')]"
+                    ],
+                    "backendAddressPool": {
+                      "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/appGatewayBackendPoolUI')]"
+                    },
+                    "backendHttpSettings": {
+                      "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/appGatewayBackendHttpSettingsUI')]"
+                    }
+                  }
+                },
+                {
+                  "name": "pathRuleAPI",
+                  "properties": {
+                    "paths": [
+                      "[variables('pathMatchAPI')]"
+                    ],
+                    "backendAddressPool": {
+                      "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/appGatewayBackendPoolAPI')]"
+                    },
+                    "backendHttpSettings": {
+                      "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/appGatewayBackendHttpSettingsAPI')]"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "requestRoutingRules": [
+          {
+            "Name": "rule1",
+            "properties": {
+              "RuleType": "PathBasedRouting",
+              "httpListener": {
+                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/appGatewayHttpListener')]"
+              },
+              "urlPathMap": {
+                "id": "[concat(variables('applicationGatewayID'), '/urlPathMaps/urlPathMap1')]"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+    "outputs": {
+  }
+}
