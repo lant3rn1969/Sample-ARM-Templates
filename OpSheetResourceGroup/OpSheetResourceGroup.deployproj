@@ -112,6 +112,7 @@
     <None Include="Templates\SQL\nested\provisioningVM2.json" />
     <None Include="Templates\SQL\nested\provisioningVM3.json" />
     <None Include="Templates\SQL\nested\provisioningVM4.json" />
+    <None Include="Templates\SQL\opSheetReportingAndAnalytics.json" />
     <None Include="Templates\SQL\opSheetSqlAlwaysOn.json" />
     <None Include="Templates\SQL\nested\creatingNICS.json" />
     <None Include="Templates\SQL\nested\nic.json" />

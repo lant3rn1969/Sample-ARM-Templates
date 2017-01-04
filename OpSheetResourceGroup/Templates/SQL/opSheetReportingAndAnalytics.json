@@ -1,0 +1,1088 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string"
+    },
+    "adminPassword": {
+      "type": "securestring"
+    },
+    "reportingVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_DS1",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4",
+        "Standard_GS1",
+        "Standard_GS2",
+        "Standard_GS3",
+        "Standard_GS4",
+        "Standard_GS5"
+      ]
+    },
+    "reportingFSWVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_DS1",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4",
+        "Standard_GS1",
+        "Standard_GS2",
+        "Standard_GS3",
+        "Standard_GS4",
+        "Standard_GS5"
+      ]
+    },
+    "analyticsVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_DS1",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4",
+        "Standard_GS1",
+        "Standard_GS2",
+        "Standard_GS3",
+        "Standard_GS4",
+        "Standard_GS5"
+      ]
+    },
+    "analyticsFSWVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_DS1",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4",
+        "Standard_GS1",
+        "Standard_GS2",
+        "Standard_GS3",
+        "Standard_GS4",
+        "Standard_GS5"
+      ]
+    },
+    "SSISVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_DS1",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4",
+        "Standard_GS1",
+        "Standard_GS2",
+        "Standard_GS3",
+        "Standard_GS4",
+        "Standard_GS5"
+      ]
+    },
+    "SSISFSWVMSize": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Standard_DS1",
+      "allowedValues": [
+        "Standard_D1_v2",
+        "Standard_D2_v2",
+        "Standard_D3_v2",
+        "Standard_D4_v2",
+        "Standard_D11_v2",
+        "Standard_D12_v2",
+        "Standard_D13_v2",
+        "Standard_D14_v2",
+        "Standard_DS1",
+        "Standard_DS2",
+        "Standard_DS3",
+        "Standard_DS4",
+        "Standard_GS1",
+        "Standard_GS2",
+        "Standard_GS3",
+        "Standard_GS4",
+        "Standard_GS5"
+      ]
+    },
+    "fswImageSKU": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter"
+      ],
+      "metadata": {
+        "description": "The Windows version for the VM"
+      }
+    },
+    "sqlImageOffer": {
+      "type": "string",
+      "defaultValue": "SQL2014SP2-WS2012R2",
+      "allowedValues": [
+        "SQL2012SP3-WS2012R2",
+        "SQL2014SP1-WS2012R2",
+        "SQL2014SP2-WS2012R2",
+        "SQL2016-WS2012R2"
+      ],
+      "metadata": {
+        "description": "The Sql Server Version"
+      }
+    },
+    "dataSubnetRef": {
+      "type": "string"
+    },
+    "reportingLBIPAddress": {
+      "type": "string",
+      "minLength": 7,
+      "maxLength": 15
+    },
+    "analyticsLBIPAddress": {
+      "type": "string",
+      "minLength": 7,
+      "maxLength": 15
+    },
+    "ssisLBIPAddress": {
+      "type": "string",
+      "minLength": 7,
+      "maxLength": 15
+    },
+    "numberOfReportingSqlInstances": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Number of SQL Server instances to be created behind internal load balancer control"
+      }
+    },
+    "numberOfAnalyticsSqlInstances": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Number of SQL Server instances to be created behind internal load balancer control"
+      }
+    },
+    "numberOfSSISSqlInstances": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Number of SQL Server instances to be created behind internal load balancer control"
+      }
+    },
+    "diagnosticsStorageName": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "reportingAvSetName": "opSheetReportingAvSet",
+    "analyticsAvSetName": "opSheetAnalyticsAvSet",
+    "ssisAvSetName": "opSheetSSISAvSet",
+    "reportingWitnessVMName": "opSheetReptFSW",
+    "analyticsWitnessVMName": "opSheetAnaFSW",
+    "ssisWitnessVMName": "opSheetSSISFSW",
+
+    "sqlImagePublisher": "MicrosoftSQLServer",
+    "sqlImageSKU": "Enterprise",
+    "fswImagePublisher": "MicrosoftWindowsServer",
+    "fswImageOffer": "WindowsServer",
+
+    "sqlVhdStorageType": "Premium_LRS",
+    "sqlVhdStorageName": "[take(concat('reportingvhds', uniqueString(resourceGroup().id)), 24)]",
+
+    "reportingFSWNicName": "opSheetReportingFswNic",
+    "analyticsFSWNicName": "opSheetAnalyticsFswNic",
+    "ssisFSWNicName": "opSheetSSISFswNic",
+    "reportingNicPrefix": "opSheetReportingNic",
+    "analyticsNicPrefix": "opSheetAnalyticsNic",
+    "ssisNicPrefix": "opSheetSSISNic",
+
+    "reportingVMNamePrefix": "opSheetRept",
+    "analyticsVMNamePrefix": "opSheetAna",
+    "ssisVMNamePrefix": "opSheetSSIS",
+
+    "reportingAOProbe": "reportingSQLAlwaysOnEndPointProbe",
+    "reportingLBFE": "reportingLBFE",
+    "reportingLBBE": "reportingLBBE",
+    "reportingLBName": "opSheetReportingLB",
+    "reportingLBID": "[resourceId('Microsoft.Network/loadBalancers',variables('reportingLBName'))]",
+    "reportingBEAddressPoolID": "[concat(variables('reportingLBID'),'/backendAddressPools/',variables('reportingLBBE'))]",
+    "reportingLBFEConfigID": "[concat(variables('reportingLBID'),'/frontendIPConfigurations/',variables('reportingLBFE'))]",
+    "reportingLBProbeID": "[concat(variables('reportingLBID'),'/probes/',variables('reportingAOProbe'))]",
+
+    "analyticsAOProbe": "analyticsAlwaysOnEndPointProbe",
+    "analyticsLBFE": "analyticsLBFE",
+    "analyticsLBBE": "analyticsLBBE",
+    "analyticsLBName": "opSheetAnalyticsLB",
+    "analyticsLBID": "[resourceId('Microsoft.Network/loadBalancers',variables('analyticsLBName'))]",
+    "analyticsBEAddressPoolID": "[concat(variables('analyticsLBID'),'/backendAddressPools/',variables('analyticsLBBE'))]",
+    "analyticsLBFEConfigID": "[concat(variables('analyticsLBID'),'/frontendIPConfigurations/',variables('analyticsLBFE'))]",
+    "analyticsLBProbeID": "[concat(variables('analyticsLBID'),'/probes/',variables('analyticsAOProbe'))]",
+
+    "ssisAOProbe": "ssisAlwaysOnEndPointProbe",
+    "ssisLBFE": "ssisLBFE",
+    "ssisLBBE": "ssisLBBE",
+    "ssisLBName": "opSheetSSISLB",
+    "ssisLBID": "[resourceId('Microsoft.Network/loadBalancers',variables('ssisLBName'))]",
+    "ssisBEAddressPoolID": "[concat(variables('ssisLBID'),'/backendAddressPools/',variables('ssisLBBE'))]",
+    "ssisLBFEConfigID": "[concat(variables('ssisLBID'),'/frontendIPConfigurations/',variables('ssisLBFE'))]",
+    "ssisLBProbeID": "[concat(variables('ssisLBID'),'/probes/',variables('ssisAOProbe'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('sqlVhdStorageName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "Web VHD Storage Account"
+      },
+      "properties": {
+        "accountType": "[variables('sqlVhdStorageType')]"
+      }
+    },
+    {
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('reportingAvSetName')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "platformFaultDomainCount": 3,
+        "platformUpdateDomainCount": 3
+      }
+    },
+    {
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('analyticsAvSetName')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "platformFaultDomainCount": 3,
+        "platformUpdateDomainCount": 3
+      }
+    },
+    {
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[variables('ssisAvSetName')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "platformFaultDomainCount": 3,
+        "platformUpdateDomainCount": 3
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('reportingFSWNicName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "reportingFSWNetworkInterface"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig0",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('analyticsFSWNicName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "analyticsFSWNetworkInterface"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('ssisFSWNicName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "ssisFSWNetworkInterface"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig2",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('reportingNicPrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "ReportingNetworkInterface"
+      },
+      "copy": {
+        "name": "reportingNicLoop",
+        "count": "[parameters('numberOfReportingSqlInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('reportingLBName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig0",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('reportingLBID'), '/backendAddressPools/', variables('reportingLBBE'))]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('analyticsNicPrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "AnalyticsNetworkInterface"
+      },
+      "copy": {
+        "name": "analyticsNicLoop",
+        "count": "[parameters('numberOfAnalyticsSqlInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('analyticsLBName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('analyticsLBID'), '/backendAddressPools/', variables('analyticsLBBE'))]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('ssisNicPrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "SSISNetworkInterface"
+      },
+      "copy": {
+        "name": "ssisNicLoop",
+        "count": "[parameters('numberOfSSISSqlInstances')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/loadBalancers/', variables('ssisLBName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig2",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[concat(variables('ssisLBID'), '/backendAddressPools/', variables('ssisLBBE'))]"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[variables('reportingLBName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "[variables('reportingLBFE')]",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('reportingLBIPAddress')]",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "[variables('reportingLBBE')]"
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "SQLAlwaysOnEndPointListener",
+            "properties": {
+              "backendAddressPool": {
+                "id": "[variables('reportingBEAddressPoolID')]"
+              },
+              "frontendIPConfiguration": {
+                "id": "[variables('reportingLBFEConfigID')]"
+              },
+              "probe": {
+                "id": "[variables('reportingLBProbeID')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 1433,
+              "backendPort": 1433,
+              "enableFloatingIP": true
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "[variables('reportingAOProbe')]",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 59999,
+              "intervalInSeconds": 5,
+              "numberOfProbes": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[variables('analyticsLBName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "[variables('analyticsLBFE')]",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('analyticsLBIPAddress')]",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "[variables('analyticsLBBE')]"
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "SQLAlwaysOnEndPointListener",
+            "properties": {
+              "backendAddressPool": {
+                "id": "[variables('analyticsBEAddressPoolID')]"
+              },
+              "frontendIPConfiguration": {
+                "id": "[variables('analyticsLBFEConfigID')]"
+              },
+              "probe": {
+                "id": "[variables('analyticsLBProbeID')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 1433,
+              "backendPort": 1433,
+              "enableFloatingIP": true
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "[variables('analyticsAOProbe')]",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 59999,
+              "intervalInSeconds": 5,
+              "numberOfProbes": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "name": "[variables('ssisLBName')]",
+      "type": "Microsoft.Network/loadBalancers",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "[variables('ssisLBFE')]",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[parameters('ssisLBIPAddress')]",
+              "subnet": {
+                "id": "[parameters('dataSubnetRef')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "[variables('ssisLBBE')]"
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "SQLAlwaysOnEndPointListener",
+            "properties": {
+              "backendAddressPool": {
+                "id": "[variables('ssisBEAddressPoolID')]"
+              },
+              "frontendIPConfiguration": {
+                "id": "[variables('ssisLBFEConfigID')]"
+              },
+              "probe": {
+                "id": "[variables('ssisLBProbeID')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 1433,
+              "backendPort": 1433,
+              "enableFloatingIP": true
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "[variables('ssisAOProbe')]",
+            "properties": {
+              "protocol": "Tcp",
+              "port": 59999,
+              "intervalInSeconds": 5,
+              "numberOfProbes": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('reportingWitnessVMName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sqlVhdStorageName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('reportingFSWNicName'))]",
+        "[concat('Microsoft.Compute/availabilitySets/',variables('reportingAvSetName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('reportingFSWVMSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('reportingAvSetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[variables('reportingWitnessVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('fswImagePublisher')]",
+            "offer": "[variables('fswImageOffer')]",
+            "sku": "[parameters('fswImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/',variables('reportingWitnessVMName'),'-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',variables('reportingFSWNicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',parameters('diagnosticsStorageName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('analyticsWitnessVMName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sqlVhdStorageName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('analyticsFSWNicName'))]",
+        "[concat('Microsoft.Compute/availabilitySets/',variables('analyticsAvSetName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('analyticsFSWVMSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('analyticsAvSetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[variables('analyticsWitnessVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('fswImagePublisher')]",
+            "offer": "[variables('fswImageOffer')]",
+            "sku": "[parameters('fswImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/',variables('analyticsWitnessVMName'),'-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',variables('analyticsFSWNicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',parameters('diagnosticsStorageName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('ssisWitnessVMName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sqlVhdStorageName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('ssisFSWNicName'))]",
+        "[concat('Microsoft.Compute/availabilitySets/',variables('ssisAvSetName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('ssisFSWVMSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('ssisAvSetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[variables('ssisWitnessVMName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('fswImagePublisher')]",
+            "offer": "[variables('fswImageOffer')]",
+            "sku": "[parameters('fswImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/',variables('ssisWitnessVMName'),'-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',variables('ssisFSWNicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',parameters('diagnosticsStorageName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('reportingVMNamePrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/availabilitySets/', variables('reportingAvSetName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sqlVhdStorageName'))]",
+        "reportingNicLoop"
+      ],
+      "copy": {
+        "name": "reportingVirtualMachineLoop",
+        "count": "[parameters('numberOfReportingSqlInstances')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('reportingVMSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('reportingAvSetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('reportingVMNamePrefix'), copyindex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('sqlImagePublisher')]",
+            "offer": "[parameters('sqlImageOffer')]",
+            "sku": "[variables('sqlImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/',variables('reportingVMNamePrefix'), copyindex(), '-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('reportingVMNamePrefix'), copyindex(), '-DataFiles-1.vhd')]"
+              },
+              "name": "[concat(variables('reportingVMNamePrefix'), copyindex(),'-data-disk1')]",
+              "caching": "ReadOnly",
+              "createOption": "Empty",
+              "diskSizeGB": "1023",
+              "lun": 0
+            },
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('reportingVMNamePrefix'), copyindex(), '-DataFiles-2.vhd')]"
+              },
+              "name": "[concat(variables('reportingVMNamePrefix'), copyindex(),'-data-disk2')]",
+              "caching": "ReadOnly",
+              "createOption": "Empty",
+              "diskSizeGB": "1023",
+              "lun": 1
+            },
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('reportingVMNamePrefix'), copyindex(), '-Logs.vhd')]"
+              },
+              "name": "[concat(variables('reportingVMNamePrefix'), copyindex(),'-logs')]",
+              "caching": "None",
+              "createOption": "Empty",
+              "diskSizeGB": "512",
+              "lun": 2
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',concat(variables('reportingNicPrefix'), copyindex()))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',parameters('diagnosticsStorageName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('analyticsVMNamePrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/availabilitySets/', variables('analyticsAvSetName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sqlVhdStorageName'))]",
+        "analyticsNicLoop"
+      ],
+      "copy": {
+        "name": "analyticsVirtualMachineLoop",
+        "count": "[parameters('numberOfanalyticsSqlInstances')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('analyticsVMSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('analyticsAvSetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('analyticsVMNamePrefix'), copyindex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('sqlImagePublisher')]",
+            "offer": "[parameters('sqlImageOffer')]",
+            "sku": "[variables('sqlImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/',variables('analyticsVMNamePrefix'), copyindex(), '-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('analyticsVMNamePrefix'), copyindex(), '-DataFiles-1.vhd')]"
+              },
+              "name": "[concat(variables('analyticsVMNamePrefix'), copyindex(),'-data-disk1')]",
+              "caching": "ReadOnly",
+              "createOption": "Empty",
+              "diskSizeGB": "1023",
+              "lun": 0
+            },
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('analyticsVMNamePrefix'), copyindex(), '-DataFiles-2.vhd')]"
+              },
+              "name": "[concat(variables('analyticsVMNamePrefix'), copyindex(),'-data-disk2')]",
+              "caching": "ReadOnly",
+              "createOption": "Empty",
+              "diskSizeGB": "1023",
+              "lun": 1
+            },
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('analyticsVMNamePrefix'), copyindex(), '-Logs.vhd')]"
+              },
+              "name": "[concat(variables('analyticsVMNamePrefix'), copyindex(),'-logs')]",
+              "caching": "None",
+              "createOption": "Empty",
+              "diskSizeGB": "512",
+              "lun": 2
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',concat(variables('analyticsNicPrefix'), copyindex()))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',parameters('diagnosticsStorageName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('ssisVMNamePrefix'), copyindex())]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/availabilitySets/', variables('ssisAvSetName'))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('sqlVhdStorageName'))]",
+        "ssisNicLoop"
+      ],
+      "copy": {
+        "name": "ssisVirtualMachineLoop",
+        "count": "[parameters('numberOfssisSqlInstances')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('ssisVMSize')]"
+        },
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('ssisAvSetName'))]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('ssisVMNamePrefix'), copyindex())]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('sqlImagePublisher')]",
+            "offer": "[parameters('sqlImageOffer')]",
+            "sku": "[variables('sqlImageSKU')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/',variables('ssisVMNamePrefix'), copyindex(), '-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('ssisVMNamePrefix'), copyindex(), '-DataFiles-1.vhd')]"
+              },
+              "name": "[concat(variables('ssisVMNamePrefix'), copyindex(),'-data-disk1')]",
+              "caching": "ReadOnly",
+              "createOption": "Empty",
+              "diskSizeGB": "1023",
+              "lun": 0
+            },
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('ssisVMNamePrefix'), copyindex(), '-DataFiles-2.vhd')]"
+              },
+              "name": "[concat(variables('ssisVMNamePrefix'), copyindex(),'-data-disk2')]",
+              "caching": "ReadOnly",
+              "createOption": "Empty",
+              "diskSizeGB": "1023",
+              "lun": 1
+            },
+            {
+              "vhd": {
+                "uri": "[concat('http://',variables('sqlVhdStorageName'),'.blob.core.windows.net/vhds/', variables('ssisVMNamePrefix'), copyindex(), '-Logs.vhd')]"
+              },
+              "name": "[concat(variables('ssisVMNamePrefix'), copyindex(),'-logs')]",
+              "caching": "None",
+              "createOption": "Empty",
+              "diskSizeGB": "512",
+              "lun": 2
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',concat(variables('ssisNicPrefix'), copyindex()))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',parameters('diagnosticsStorageName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }
+}

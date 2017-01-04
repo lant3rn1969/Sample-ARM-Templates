@@ -193,12 +193,15 @@
     "virtualNetworkName": "OpSheetVNet",
     "vnetIPRange": "10.0.0.0/16",
     "webSubnetRange": "10.0.0.0/26",
-    "webSubnetStartIp": "10.0.0.5", 
+    "webSubnetStartIp": "10.0.0.5",
     "webSubnetRange2": "10.0.0.64/26",
     "dataSubnetRange": "10.0.1.0/24",
     "opsSubnetRange": "10.0.2.0/24",
     "sbSubnetRange": "10.0.3.0/24",
     "sqlLBFEIPAddress": "10.0.1.100",
+    "reportingLBFEIPAddress": "10.0.1.120",
+    "analyticsLBFEIPAddress": "10.0.1.140",
+    "ssisLBFEIPAddress": "10.0.1.160",
     "SBsqlLBFEIPAddress": "10.0.1.101",
     "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "webSubnetName": "WebSubnet",
@@ -219,6 +222,7 @@
     "provisioningOps": "[concat(parameters('templatesBaseUrl'),'/opSheetAdPlusJumpBox.json')]",
     "provisioningWeb": "[concat(parameters('templatesBaseUrl'),'/opSheetWeb.json')]",
     "provisioningSql": "[concat(parameters('templatesBaseUrl'),'/opSheetSqlAlwaysOn.json')]",
+    "provisioningReporting": "[concat(parameters('templatesBaseUrl'),'/opSheetReportingAndAnalytics.json')]",
     "provisioningServiceBus": "[concat(parameters('templatesBaseUrl'),'/opSheetServiceBus.json')]",
     "provisioningAppGateway": "[concat(parameters('templatesBaseUrl'),'/opSheetApplicationGateway.json')]",
     "diagnosticsStorageAccountName": "[concat('diagstorage', uniqueString(resourceGroup().id))]"
@@ -339,7 +343,7 @@
             "value": "[variables('webSubnetRef')]"
           },
           "webSubnetStartIp": {
-            "value": "[variables('webSubnetStartIp')]" 
+            "value": "[variables('webSubnetStartIp')]"
           }
         }
       }
@@ -418,6 +422,63 @@
           },
           "numberOfSqlInstances": {
             "value": "[parameters('numberOfSqlInstances')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "ProvisioningReporting",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2015-01-01",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('diagnosticsStorageAccountName'))]",
+        "[variables('vnetId')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('provisioningReporting')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "adminUsername": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "reportingVMSize": {
+            "value": "Standard_GS1"
+          },
+          "reportingFSWVMSize": {
+            "value": "Standard_GS1"
+          },
+          "analyticsVMSize": {
+            "value": "Standard_GS1"
+          },
+          "analyticsFSWVMSize": {
+            "value": "Standard_GS1"
+          },
+          "SSISVMSize": {
+            "value": "Standard_GS1"
+          },
+          "SSISFSWVMSize": {
+            "value": "Standard_GS1"
+          },
+          "dataSubnetRef": {
+            "value": "[variables('dataSubnetRef')]"
+          },
+          "reportingLBIPAddress": {
+            "value": "[variables('reportingLBFEIPAddress')]"
+          },
+          "analyticsLBIPAddress": {
+            "value": "[variables('analyticsLBFEIPAddress')]"
+          },
+          "ssisLBIPAddress": {
+            "value": "[variables('ssisLBFEIPAddress')]"
+          },
+          "diagnosticsStorageName": {
+            "value": "[variables('diagnosticsStorageAccountName')]"
           }
         }
       }
